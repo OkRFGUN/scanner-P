@@ -11,6 +11,7 @@ import { PLUS_MODULES, normalizePlusModules } from "./plusModules.js";
 import { filterResources, RESOURCE_TYPES } from "./resourceExtractor.js";
 
 const PORT = Number(globalThis.process?.env?.PORT || globalThis.process?.argv?.[2] || 4173);
+const HOST = globalThis.process?.env?.REPLIT ? "0.0.0.0" : "127.0.0.1";
 const PUBLIC_DIR = path.resolve("public");
 
 await ensureStorage();
@@ -30,8 +31,8 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Compliant Capture Tool running at http://127.0.0.1:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`Compliant Capture Tool running at http://${HOST}:${PORT}`);
 });
 
 async function handleApi(req, res, url) {
