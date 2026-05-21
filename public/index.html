@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Passive Web Lab</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1>Passive Web Lab</h1>
+          <p>面向网安学习的合规被动侦察、资料采集和证据分析工作台。</p>
+        </div>
+        <div class="toolbar">
+          <span id="serviceBadge" class="badge">Local</span>
+          <button id="refreshBtn" class="icon-button" title="刷新">↻</button>
+        </div>
+      </header>
+
+      <section class="workbench">
+        <form id="taskForm" class="panel builder">
+          <div class="section-title">
+            <h2>任务配置</h2>
+            <span class="hint">被动请求，不提交表单，不爆破，不绕过</span>
+          </div>
+
+          <label>
+            任务名称
+            <input name="name" value="外网被动侦察学习任务" />
+          </label>
+
+          <label>
+            目标 URL，每行一个
+            <textarea name="sources" rows="5" placeholder="https://example.com"></textarea>
+          </label>
+
+          <div class="quick-actions">
+            <button id="sampleBtn" class="secondary" type="button">内置测试页</button>
+            <button id="exampleBtn" class="secondary" type="button">example.com</button>
+            <button id="diagnoseBtn" class="secondary" type="button">诊断首个目标</button>
+          </div>
+
+          <h3>可选内容模块</h3>
+          <div id="modulePicker" class="module-grid"></div>
+
+          <h3>Plus 增强模块（可选）</h3>
+          <div id="plusModulePicker" class="module-grid"></div>
+
+          <details>
+            <summary>自定义字段模板</summary>
+            <textarea name="template" rows="9"></textarea>
+          </details>
+
+          <div class="grid">
+            <label>
+              请求间隔(ms)
+              <input name="requestDelayMs" type="number" value="1000" min="200" />
+            </label>
+            <label>
+              超时(ms)
+              <input name="timeoutMs" type="number" value="15000" min="1000" />
+            </label>
+            <label>
+              重试次数
+              <input name="maxRetries" type="number" value="2" min="0" />
+            </label>
+            <label>
+              暂停阈值
+              <input name="failurePauseThreshold" type="number" value="2" min="1" />
+            </label>
+          </div>
+
+          <details>
+            <summary>Plus 增强配置</summary>
+            <div class="grid" style="margin-top: 8px;">
+              <label>
+                最小随机延迟(ms)
+                <input name="plusMinDelay" type="number" value="1200" min="100" />
+              </label>
+              <label>
+                最大随机延迟(ms)
+                <input name="plusMaxDelay" type="number" value="3500" min="100" />
+              </label>
+            </div>
+          </details>
+
+          <label>
+            授权/学习备注
+            <textarea name="notes" rows="3" placeholder="例如：课程靶场、自己的网站、公开授权页面、测试目的"></textarea>
+          </label>
+
+          <button class="primary" type="submit">创建任务</button>
+        </form>
+
+        <section class="panel">
+          <div class="section-title">
+            <h2>任务与运行</h2>
+            <span id="runningBadge" class="badge">0 运行中</span>
+          </div>
+          <div id="tasks" class="stack"></div>
+
+          <div class="section-title gap-top">
+            <h2>最近结果</h2>
+            <span class="hint">点击查看详情</span>
+          </div>
+          <div id="runs" class="run-list"></div>
+        </section>
+
+        <section class="panel result-panel">
+          <div class="section-title">
+            <h2>结果详情</h2>
+            <span id="selectedRunBadge" class="badge muted">未选择</span>
+          </div>
+          <div id="diagnostics" class="diagnostics"></div>
+          <div id="runDetail" class="detail-empty">运行一个任务，或从最近结果里点开查看。</div>
+          <div id="resourceViewer" class="resource-viewer" style="display: none;">
+        <div class="section-title resource-viewer-header">
+          <h3>📦 网页资源查看器</h3>
+          <div class="header-buttons">
+            <button class="secondary" id="select-all-btn" style="min-height: 30px; padding: 0 10px;">全选</button>
+            <button class="secondary" id="deselect-all-btn" style="min-height: 30px; padding: 0 10px;">取消全选</button>
+            <button class="primary" id="save-selected-btn" style="min-height: 30px; padding: 0 10px;">💾 保存选中资源</button>
+            <button class="secondary" id="close-resources-btn" style="min-height: 30px; padding: 0 10px;">关闭</button>
+          </div>
+        </div>
+        <div class="resource-filters">
+          <input type="text" id="resourceSearch" placeholder="搜索资源（文件名或URL）..." />
+          <div class="filter-controls">
+            <label><input type="checkbox" id="filterInternal" /> 仅内部资源</label>
+          </div>
+          <div id="typeFilters" class="type-filters"></div>
+        </div>
+        <div id="resourceStats" class="resource-stats"></div>
+        <div id="selectedCount" class="selected-count" style="display: none; margin-bottom: 12px; padding: 10px; background: #e7f5ed; border-radius: 6px; font-weight: bold;">
+          已选择 <span id="selectedCountNum">0</span> 个资源
+        </div>
+        <div id="resourceList" class="resource-list"></div>
+      </div>
+          <pre id="filePreview" class="file-preview"></pre>
+        </section>
+      </section>
+
+      <section class="lower">
+        <section class="panel log-panel">
+          <div class="section-title">
+            <h2>运行日志</h2>
+            <div class="log-controls">
+              <select id="logLevel">
+                <option value="">全部级别</option>
+                <option value="info">Info</option>
+                <option value="warn">Warn</option>
+                <option value="error">Error</option>
+              </select>
+              <input id="logSearch" placeholder="搜索 URL、任务、原因、状态" />
+              <button id="logRefresh" class="secondary" type="button">刷新日志</button>
+            </div>
+          </div>
+          <div id="logStats" class="log-stats"></div>
+          <div class="log-layout">
+            <div id="audit" class="audit"></div>
+            <pre id="logDetail" class="log-detail">点击左侧任意日志查看完整详情。</pre>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>合规边界</h2>
+          <div id="compliance" class="chips"></div>
+        </section>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "compliant-capture-tool",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local compliant data capture MVP with pause/resume, audit logs, and source diagnostics.",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
